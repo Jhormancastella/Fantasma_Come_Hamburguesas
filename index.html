@@ -43,7 +43,7 @@
             color: white;
             padding: 8px 15px;
             border-radius: 20px;
-            font-size: 16px;
+            font-size: 10px;
             z-index: 100;
         }
         
@@ -65,6 +65,7 @@
         }
         
         .game-title {
+            text-align: center;
             font-size: 3.5rem;
             font-weight: bold;
             margin-bottom: 30px;
@@ -158,7 +159,7 @@
         .console-controls {
             display: flex;
             justify-content: space-between;
-            padding: 0 40px;
+            
             margin-top: 20px;
         }
         
@@ -219,7 +220,7 @@
         
         .action-buttons {
             display: flex;
-            gap: 30px;
+            gap: 8px;
             align-items: center;
         }
         
@@ -393,7 +394,7 @@
             color: white;
             padding: 8px 15px;
             border-radius: 20px;
-            font-size: 16px;
+            font-size: 10px;
             z-index: 100;
         }
         
@@ -522,8 +523,8 @@
             }
             
             .action-btn {
-                width: 60px;
-                height: 60px;
+                width: 35px;
+                height: 35px;
             }
             
             #btn-pause {
@@ -546,7 +547,7 @@
     </style>
 </head>
 <body>
-    <h1>Aventura de Rosy</h1>
+    <h1>Aventura de Alex</h1>
     <div id="device-info">Dispositivo: Detectando...</div>
     
     <!-- Pantalla de inicio -->
@@ -579,7 +580,7 @@
             
             <div class="console-controls">
                 <div class="d-pad">
-                    <div class="d-pad-center"></div>
+                    <!-- <div class="d-pad-center"></div> -->
                     <div class="d-pad-btn d-pad-up" id="up-btn">↑</div>
                     <div class="d-pad-btn d-pad-down" id="down-btn">↓</div>
                     <div class="d-pad-btn d-pad-left" id="left-btn">←</div>
@@ -587,9 +588,10 @@
                 </div>
                 
                 <div class="action-buttons">
+                    <div class="action-btn" id="btn-pause">P</div>
                     <div class="action-btn" id="btn-a">A</div>
                     <div class="action-btn" id="btn-b">B</div>
-                    <div class="action-btn" id="btn-pause">P</div>
+                    
                 </div>
             </div>
         </div>
@@ -622,1134 +624,1222 @@
     </div>
 
     <script>
-        // Sistema de sonido programático usando Web Audio API
-        class SoundSystem {
-            constructor() {
-                this.audioContext = null;
-                this.masterVolume = 0.3;
-                this.enabled = true;
-                this.initAudio();
-            }
-            
-            initAudio() {
-                try {
-                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                } catch (e) {
-                    console.log('Web Audio API no soportada');
-                    this.enabled = false;
-                }
-            }
-            
-            // Crear un oscilador con parámetros específicos
-            createOscillator(frequency, type = 'sine', duration = 0.2) {
-                if (!this.enabled || !this.audioContext) return;
-                
-                const oscillator = this.audioContext.createOscillator();
-                const gainNode = this.audioContext.createGain();
-                
-                oscillator.connect(gainNode);
-                gainNode.connect(this.audioContext.destination);
-                
-                oscillator.frequency.setValueAtTime(frequency, this.audioContext.currentTime);
-                oscillator.type = type;
-                
-                gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
-                gainNode.gain.linearRampToValueAtTime(this.masterVolume, this.audioContext.currentTime + 0.01);
-                gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + duration);
-                
-                oscillator.start(this.audioContext.currentTime);
-                oscillator.stop(this.audioContext.currentTime + duration);
-                
-                return { oscillator, gainNode };
-            }
-            
-            // Sonido de salto (tono ascendente)
-            playJump() {
-                if (!this.enabled) return;
-                
-                const startFreq = 200;
-                const endFreq = 400;
-                const duration = 0.3;
-                
-                const oscillator = this.audioContext.createOscillator();
-                const gainNode = this.audioContext.createGain();
-                
-                oscillator.connect(gainNode);
-                gainNode.connect(this.audioContext.destination);
-                
-                oscillator.frequency.setValueAtTime(startFreq, this.audioContext.currentTime);
-                oscillator.frequency.linearRampToValueAtTime(endFreq, this.audioContext.currentTime + duration);
-                oscillator.type = 'square';
-                
-                gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
-                gainNode.gain.linearRampToValueAtTime(this.masterVolume * 0.8, this.audioContext.currentTime + 0.01);
-                gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + duration);
-                
-                oscillator.start(this.audioContext.currentTime);
-                oscillator.stop(this.audioContext.currentTime + duration);
-            }
-            
-            // Sonido de recolección de moneda (tono agudo y brillante)
-            playCoin() {
-                if (!this.enabled) return;
-                
-                // Crear múltiples tonos para un sonido más rico
-                const frequencies = [523, 659, 784]; // Do, Mi, Sol
-                
-                frequencies.forEach((freq, index) => {
-                    setTimeout(() => {
-                        this.createOscillator(freq, 'sine', 0.15);
-                    }, index * 50);
-                });
-            }
-            
-            // Sonido de colisión/daño (tono grave y áspero)
-            playHit() {
-                if (!this.enabled) return;
-                
-                const oscillator = this.audioContext.createOscillator();
-                const gainNode = this.audioContext.createGain();
-                
-                oscillator.connect(gainNode);
-                gainNode.connect(this.audioContext.destination);
-                
-                oscillator.frequency.setValueAtTime(150, this.audioContext.currentTime);
-                oscillator.frequency.linearRampToValueAtTime(80, this.audioContext.currentTime + 0.4);
-                oscillator.type = 'sawtooth';
-                
-                gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
-                gainNode.gain.linearRampToValueAtTime(this.masterVolume, this.audioContext.currentTime + 0.01);
-                gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + 0.4);
-                
-                oscillator.start(this.audioContext.currentTime);
-                oscillator.stop(this.audioContext.currentTime + 0.4);
-            }
-            
-            // Sonido de power-up (secuencia ascendente)
-            playPowerUp() {
-                if (!this.enabled) return;
-                
-                const notes = [262, 330, 392, 523]; // Do, Mi, Sol, Do octava
-                
-                notes.forEach((freq, index) => {
-                    setTimeout(() => {
-                        this.createOscillator(freq, 'triangle', 0.2);
-                    }, index * 80);
-                });
-            }
-            
-            // Sonido de completar nivel (fanfarria)
-            playLevelComplete() {
-                if (!this.enabled) return;
-                
-                const melody = [523, 659, 784, 1047]; // Do, Mi, Sol, Do
-                
-                melody.forEach((freq, index) => {
-                    setTimeout(() => {
-                        this.createOscillator(freq, 'sine', 0.5);
-                    }, index * 200);
-                });
-            }
-            
-            // Sonido de game over (secuencia descendente)
-            playGameOver() {
-                if (!this.enabled) return;
-                
-                const notes = [392, 349, 311, 262]; // Sol, Fa, Mi♭, Do
-                
-                notes.forEach((freq, index) => {
-                    setTimeout(() => {
-                        this.createOscillator(freq, 'triangle', 0.6);
-                    }, index * 300);
-                });
-            }
-            
-            // Música de fondo simple (opcional)
-            playBackgroundMusic() {
-                if (!this.enabled || this.backgroundPlaying) return;
-                
-                this.backgroundPlaying = true;
-                const melody = [262, 294, 330, 349, 392, 440, 494, 523]; // Escala de Do mayor
-                let noteIndex = 0;
-                
-                const playNextNote = () => {
-                    if (!this.backgroundPlaying) return;
-                    
-                    this.createOscillator(melody[noteIndex], 'sine', 0.8);
-                    noteIndex = (noteIndex + 1) % melody.length;
-                    
-                    setTimeout(playNextNote, 1000);
-                };
-                
-                playNextNote();
-            }
-            
-            stopBackgroundMusic() {
-                this.backgroundPlaying = false;
-            }
-            
-            // Alternar sonido
-            toggleSound() {
-                this.enabled = !this.enabled;
-                if (!this.enabled) {
-                    this.stopBackgroundMusic();
-                }
-                return this.enabled;
+    // Sistema de sonido programático usando Web Audio API
+    class SoundSystem {
+        constructor() {
+            this.audioContext = null;
+            this.masterVolume = 0.3;
+            this.enabled = true;
+            this.initAudio();
+        }
+        
+        initAudio() {
+            try {
+                this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            } catch (e) {
+                console.log('Web Audio API no soportada');
+                this.enabled = false;
             }
         }
         
-        const soundSystem = new SoundSystem();
-
-        // Detección de dispositivo
-        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || window.innerWidth <= 768;
-        const deviceInfo = document.getElementById('device-info');
-        const controlsInfo = document.getElementById('controls-info');
-        
-        if (isMobile) {
-            deviceInfo.textContent = "Dispositivo: Móvil";
-            controlsInfo.innerHTML = "Usa los botones en pantalla para controlar a Rosy<br>El botón A para saltar, el botón P para pausar";
-        } else {
-            deviceInfo.textContent = "Dispositivo: Escritorio (Modo TV CRT)";
-            controlsInfo.innerHTML = "Usa las flechas del teclado para mover a  Fantasma<br>Barra espaciadora para saltar, P para pausar, Enter para iniciar";
-        }
-        
-        // Variables de estado del juego
-        let gameStarted = false;
-        let gamePaused = false;
-        let currentLevel = 'facil';
-        let gameTime = 0;
-        let timerInterval;
-        let cameraOffset = 0;
-        let worldWidth = 4000; // Ancho total del mundo (más allá de la pantalla)
-        let characterImage = new Image();
-        let characterFacing = 'right'; // Dirección del personaje
-        
-        // Cargar la imagen del personaje
-        characterImage.src = 'https://res.cloudinary.com/dipv76dpn/image/upload/v1757965673/Rosy/ivni8lei5dqqrclfvlm3.png';
-        
-        // Configuración del juego
-        let canvas, ctx;
-        if (isMobile) {
-            canvas = document.getElementById('mobile-canvas');
-        } else {
-            canvas = document.getElementById('desktop-canvas');
-        }
-        ctx = canvas.getContext('2d');
-        
-        // Elementos de la UI
-        const splashScreen = document.getElementById('splash-screen');
-        const startButton = document.getElementById('start-button');
-        const pauseModal = document.getElementById('pause-modal');
-        const resumeButton = document.getElementById('resume-button');
-        const pauseBtn = document.getElementById('pause-btn');
-        const scoreDisplay = document.getElementById('score');
-        const livesDisplay = document.getElementById('lives');
-        const levelButtons = document.querySelectorAll('.level-btn');
-        
-        // Ajustar tamaño del canvas
-        function resizeCanvas() {
-            if (isMobile) {
-                const screenArea = document.querySelector('.console-screen-area');
-                canvas.width = screenArea.clientWidth - 20;
-                canvas.height = screenArea.clientHeight - 20;
-            } else {
-                // Para el modo TV CRT, usar dimensiones fijas
-                canvas.width = 640;
-                canvas.height = 480;
-            }
+        // Crear un oscilador con parámetros específicos
+        createOscillator(frequency, type = 'sine', duration = 0.2) {
+            if (!this.enabled || !this.audioContext) return;
             
-            // Reposicionar elementos del juego
-            if (gameStarted) {
-                repositionGameElements();
-            }
+            const oscillator = this.audioContext.createOscillator();
+            const gainNode = this.audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(this.audioContext.destination);
+            
+            oscillator.frequency.setValueAtTime(frequency, this.audioContext.currentTime);
+            oscillator.type = type;
+            
+            gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
+            gainNode.gain.linearRampToValueAtTime(this.masterVolume, this.audioContext.currentTime + 0.01);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + duration);
+            
+            oscillator.start(this.audioContext.currentTime);
+            oscillator.stop(this.audioContext.currentTime + duration);
+            
+            return { oscillator, gainNode };
         }
         
-        // Variables del juego
-        const character = {
-            x: 300,
-            y: canvas.height - 100, // Fixed initial position - start on ground instead of y: 0
-            width: 50,
-            height: 50,
-            velocityX: 0,
-            velocityY: 0,
-            speed: isMobile ? 5 : 8,
-            jumpForce: isMobile ? 15 : 20,
-            isJumping: false,
-            friction: 0.9,
-            gravity: 0.8,
-            invulnerable: false
-        };
+        // Sonido de salto (tono ascendente)
+        playJump() {
+            if (!this.enabled) return;
+            
+            const startFreq = 200;
+            const endFreq = 400;
+            const duration = 0.3;
+            
+            const oscillator = this.audioContext.createOscillator();
+            const gainNode = this.audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(this.audioContext.destination);
+            
+            oscillator.frequency.setValueAtTime(startFreq, this.audioContext.currentTime);
+            oscillator.frequency.linearRampToValueAtTime(endFreq, this.audioContext.currentTime + duration);
+            oscillator.type = 'square';
+            
+            gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
+            gainNode.gain.linearRampToValueAtTime(this.masterVolume * 0.8, this.audioContext.currentTime + 0.01);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + duration);
+            
+            oscillator.start(this.audioContext.currentTime);
+            oscillator.stop(this.audioContext.currentTime + duration);
+        }
         
-        let score = 0;
-        let lives = 3;
-        let enemies = [];
-        let powerUps = [];
-        let levelCoins = 0;
-        let lastEnemySpawn = 0;
-        let enemySpawnDelay = 100; // Tiempo entre aparición de enemigos (en frames)
-        
-        // Configuración de niveles
-        const levels = {
-            facil: {
-                enemySpeed: 2,
-                enemyCount: 2,
-                powerUpCount: 2,
-                gravity: 0.8,
-                enemySpawnDelay: 120
-            },
-            medio: {
-                enemySpeed: 3,
-                enemyCount: 3,
-                powerUpCount: 1,
-                gravity: 0.9,
-                enemySpawnDelay: 90
-            },
-            dificil: {
-                enemySpeed: 4,
-                enemyCount: 4,
-                powerUpCount: 1,
-                gravity: 1.0,
-                enemySpawnDelay: 60
-            }
-        };
-        
-        // Plataformas y monedas
-        let platforms = [];
-        let coins = [];
-        
-        // Estados de control
-        let controls = {
-            left: false,
-            right: false,
-            up: false
-        };
-        
-        // Selector de nivel
-        levelButtons.forEach(btn => {
-            btn.addEventListener('click', () => {
-                levelButtons.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                currentLevel = btn.dataset.level;
+        // Sonido de recolección de moneda (tono agudo y brillante)
+        playCoin() {
+            if (!this.enabled) return;
+            
+            // Crear múltiples tonos para un sonido más rico
+            const frequencies = [523, 659, 784]; // Do, Mi, Sol
+            
+            frequencies.forEach((freq, index) => {
+                setTimeout(() => {
+                    this.createOscillator(freq, 'sine', 0.15);
+                }, index * 50);
             });
-        });
-        
-        // Reposicionar elementos del juego según el tamaño del canvas
-        function repositionGameElements() {
-            // Plataformas - crear un mundo más ancho
-            platforms = [
-                // Plataforma principal (suelo)
-                {x: 0, y: canvas.height - 30, width: worldWidth, height: 30},
-                
-                // Plataformas adicionales
-                {x: 500, y: canvas.height - 100, width: 100, height: 20},
-                {x: 800, y: canvas.height - 150, width: 100, height: 20},
-                {x: 1100, y: canvas.height - 200, width: 100, height: 20},
-                {x: 1500, y: canvas.height - 250, width: 100, height: 20},
-                {x: 1800, y: canvas.height - 300, width: 100, height: 20},
-                {x: 2200, y: canvas.height - 350, width: 80, height: 20},
-                {x: 2600, y: canvas.height - 400, width: 80, height: 20},
-                {x: 3000, y: canvas.height - 200, width: 120, height: 20},
-                {x: 3400, y: canvas.height - 300, width: 120, height: 20}
-            ];
-            
-            // Monedas - distribuir por todo el mundo
-            coins = [];
-            levelCoins = 30 + (currentLevel === 'dificil' ? 10 : 0);
-            
-            for (let i = 0; i < levelCoins; i++) {
-                const x = Math.random() * (worldWidth - 40) + 20;
-                const y = Math.random() * (canvas.height - 150) + 50;
-                coins.push({x, y, radius: 10, collected: false});
-            }
-            
-            // Enemigos - inicialmente vacío, se generarán progresivamente
-            enemies = [];
-            
-            // Power-ups
-            powerUps = [];
-            const powerUpCount = levels[currentLevel].powerUpCount;
-            
-            for (let i = 0; i < powerUpCount; i++) {
-                const x = Math.random() * (worldWidth - 40) + 20;
-                const y = Math.random() * (canvas.height - 150) + 50;
-                
-                powerUps.push({
-                    x,
-                    y,
-                    radius: 12,
-                    color: '#00ff00',
-                    type: Math.random() > 0.5 ? 'life' : 'speed',
-                    collected: false
-                });
-            }
-            
-            // Ajustar gravedad según nivel
-            character.gravity = levels[currentLevel].gravity;
-            
-            // Ajustar delay de aparición de enemigos
-            enemySpawnDelay = levels[currentLevel].enemySpawnDelay;
-            
-            // Posición inicial del personaje
-            character.x = 300;
-            character.y = canvas.height - 80; // Fixed initial Y position to be on the ground platform
-            character.velocityX = 0; // Reset velocities when repositioning
-            character.velocityY = 0;
-            character.isJumping = false; // Reset jumping state
-            cameraOffset = 0;
-            characterFacing = 'right';
         }
         
-        // Inicializar el tamaño del canvas
-        resizeCanvas();
-        window.addEventListener('resize', resizeCanvas);
+        // Sonido de colisión/daño (tono grave y áspero)
+        playHit() {
+            if (!this.enabled) return;
+            
+            const oscillator = this.audioContext.createOscillator();
+            const gainNode = this.audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(this.audioContext.destination);
+            
+            oscillator.frequency.setValueAtTime(150, this.audioContext.currentTime);
+            oscillator.frequency.linearRampToValueAtTime(80, this.audioContext.currentTime + 0.4);
+            oscillator.type = 'sawtooth';
+            
+            gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
+            gainNode.gain.linearRampToValueAtTime(this.masterVolume, this.audioContext.currentTime + 0.01);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + 0.4);
+            
+            oscillator.start(this.audioContext.currentTime);
+            oscillator.stop(this.audioContext.currentTime + 0.4);
+        }
         
-        // Iniciar juego
-        startButton.addEventListener('click', startGame);
+        // Sonido de power-up (secuencia ascendente)
+        playPowerUp() {
+            if (!this.enabled) return;
+            
+            const notes = [262, 330, 392, 523]; // Do, Mi, Sol, Do octava
+            
+            notes.forEach((freq, index) => {
+                setTimeout(() => {
+                    this.createOscillator(freq, 'triangle', 0.2);
+                }, index * 80);
+            });
+        }
         
-        // También permitir iniciar con Enter en desktop
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !gameStarted) {
-                startGame();
+        // Sonido de completar nivel (fanfarria)
+        playLevelComplete() {
+            if (!this.enabled) return;
+            
+            const melody = [523, 659, 784, 1047]; // Do, Mi, Sol, Do
+            
+            melody.forEach((freq, index) => {
+                setTimeout(() => {
+                    this.createOscillator(freq, 'sine', 0.5);
+                }, index * 200);
+            });
+        }
+        
+        // Sonido de game over (secuencia descendente)
+        playGameOver() {
+            if (!this.enabled) return;
+            
+            const notes = [392, 349, 311, 262]; // Sol, Fa, Mi♭, Do
+            
+            notes.forEach((freq, index) => {
+                setTimeout(() => {
+                    this.createOscillator(freq, 'triangle', 0.6);
+                }, index * 300);
+            });
+        }
+        
+        // Música de fondo simple (opcional)
+        playBackgroundMusic() {
+            if (!this.enabled || this.backgroundPlaying) return;
+            
+            this.backgroundPlaying = true;
+            const melody = [262, 294, 330, 349, 392, 440, 494, 523]; // Escala de Do mayor
+            let noteIndex = 0;
+            
+            const playNextNote = () => {
+                if (!this.backgroundPlaying) return;
+                
+                this.createOscillator(melody[noteIndex], 'sine', 0.8);
+                noteIndex = (noteIndex + 1) % melody.length;
+                
+                setTimeout(playNextNote, 1000);
+            };
+            
+            playNextNote();
+        }
+        
+        stopBackgroundMusic() {
+            this.backgroundPlaying = false;
+        }
+        
+        // Alternar sonido
+        toggleSound() {
+            this.enabled = !this.enabled;
+            if (!this.enabled) {
+                this.stopBackgroundMusic();
             }
+            return this.enabled;
+        }
+    }
+    
+    const soundSystem = new SoundSystem();
+
+    // Detección de dispositivo
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || window.innerWidth <= 768;
+    const deviceInfo = document.getElementById('device-info');
+    const controlsInfo = document.getElementById('controls-info');
+    
+    if (isMobile) {
+        deviceInfo.textContent = "Dispositivo: Móvil";
+        controlsInfo.innerHTML = "Usa los botones en pantalla para controlar a ALEX<br>El botón A para saltar, el botón P para pausar";
+    } else {
+        deviceInfo.textContent = "Dispositivo: Escritorio (Modo TV CRT)";
+        controlsInfo.innerHTML = "Usa las flechas del teclado para mover a  Fantasma<br>Barra espaciadora para saltar, P para pausar, Enter para iniciar";
+    }
+    
+    // Variables de estado del juego
+    let gameStarted = false;
+    let gamePaused = false;
+    let currentLevel = 'facil';
+    let gameTime = 0;
+    let timerInterval;
+    let cameraOffset = 0;
+    let worldWidth = 4000; // Ancho total del mundo (más allá de la pantalla)
+    let characterImage = new Image();
+    let characterFacing = 'right'; // Dirección del personaje
+    
+    // Cargar la imagen del personaje
+    characterImage.src = 'https://res.cloudinary.com/dipv76dpn/image/upload/v1757965673/Rosy/ivni8lei5dqqrclfvlm3.png';
+    
+    // Configuración del juego
+    let canvas, ctx;
+    if (isMobile) {
+        canvas = document.getElementById('mobile-canvas');
+    } else {
+        canvas = document.getElementById('desktop-canvas');
+    }
+    ctx = canvas.getContext('2d');
+    
+    // Elementos de la UI - NUEVO: Referencias para ambos layouts
+    const splashScreen = document.getElementById('splash-screen');
+    const startButton = document.getElementById('start-button');
+    const pauseModal = document.getElementById('pause-modal');
+    const resumeButton = document.getElementById('resume-button');
+    const pauseBtn = document.getElementById('pause-btn');
+    const levelButtons = document.querySelectorAll('.level-btn');
+    
+    // NUEVO: Funciones para actualizar ambos layouts
+    function updateScore(score) {
+        const allScoreDisplays = document.querySelectorAll('#score');
+        allScoreDisplays.forEach(display => {
+            display.textContent = `Puntos: ${score}`;
         });
+    }
+
+    function updateLives(lives) {
+        const allLivesDisplays = document.querySelectorAll('#lives');
+        allLivesDisplays.forEach(display => {
+            display.textContent = `Vidas: ${lives}`;
+        });
+    }
+
+    function updateAllDisplays() {
+        updateScore(score);
+        updateLives(lives);
+    }
+    
+    // Ajustar tamaño del canvas
+    function resizeCanvas() {
+        if (isMobile) {
+            const screenArea = document.querySelector('.console-screen-area');
+            canvas.width = screenArea.clientWidth - 20;
+            canvas.height = screenArea.clientHeight - 20;
+        } else {
+            // Para el modo TV CRT, usar dimensiones fijas
+            canvas.width = 640;
+            canvas.height = 480;
+        }
         
-        function startGame() {
-            gameStarted = true;
-            splashScreen.style.opacity = '0';
-            setTimeout(() => {
-                splashScreen.style.display = 'none';
-            }, 500);
-            
-            // Reiniciar estadísticas
-            score = 0;
-            lives = 3;
-            gameTime = 0;
-            scoreDisplay.textContent = `Puntos: ${score}`;
-            livesDisplay.textContent = `Vidas: ${lives}`;
-            
-            // Iniciar temporizador
-            clearInterval(timerInterval);
-            timerInterval = setInterval(() => {
-                if (!gamePaused && gameStarted) {
-                    gameTime++;
-                }
-            }, 1000);
-            
+        // Reposicionar elementos del juego
+        if (gameStarted) {
             repositionGameElements();
-            update();
         }
+    }
+    
+    // Variables del juego
+    const character = {
+        x: 300,
+        y: canvas.height - 100, // Fixed initial position - start on ground instead of y: 0
+        width: 50,
+        height: 50,
+        velocityX: 0,
+        velocityY: 0,
+        speed: isMobile ? 5 : 8,
+        jumpForce: isMobile ? 15 : 20,
+        isJumping: false,
+        friction: 0.9,
+        gravity: 0.8,
+        invulnerable: false
+    };
+    
+    let score = 0;
+    let lives = 3;
+    let enemies = [];
+    let powerUps = [];
+    let levelCoins = 0;
+    let lastEnemySpawn = 0;
+    let enemySpawnDelay = 100; // Tiempo entre aparición de enemigos (en frames)
+    
+    // Configuración de niveles
+    const levels = {
+        facil: {
+            enemySpeed: 2,
+            enemyCount: 2,
+            powerUpCount: 2,
+            gravity: 0.8,
+            enemySpawnDelay: 120
+        },
+        medio: {
+            enemySpeed: 3,
+            enemyCount: 3,
+            powerUpCount: 1,
+            gravity: 0.9,
+            enemySpawnDelay: 90
+        },
+        dificil: {
+            enemySpeed: 4,
+            enemyCount: 4,
+            powerUpCount: 1,
+            gravity: 1.0,
+            enemySpawnDelay: 60
+        }
+    };
+    
+    // Plataformas y monedas
+    let platforms = [];
+    let coins = [];
+    
+    // Estados de control
+    let controls = {
+        left: false,
+        right: false,
+        up: false
+    };
+    
+    // Selector de nivel
+    levelButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            levelButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentLevel = btn.dataset.level;
+        });
+    });
+    
+// Reposicionar elementos del juego según el tamaño del canvas
+function repositionGameElements() {
+    // Calcular parámetros según el nivel de dificultad
+    const platformConfig = {
+        facil: { spacing: 300, heightVariation: 50, maxJumpHeight: 150 },
+        medio: { spacing: 350, heightVariation: 80, maxJumpHeight: 180 },
+        dificil: { spacing: 400, heightVariation: 100, maxJumpHeight: 200 }
+    };
+    
+    const config = platformConfig[currentLevel];
+    
+    // Plataformas - crear un diseño progresivo y alcanzable
+    platforms = [
+        // Plataforma principal (suelo) - más ancha para empezar
+        {x: 0, y: canvas.height - 30, width: 800, height: 30}
+    ];
+    
+    // Generar plataformas de forma progresiva
+    let lastX = 800; // Comenzar después de la plataforma inicial
+    let lastY = canvas.height - 30;
+    
+    // Crear 15-20 plataformas en un patrón alcanzable
+    for (let i = 0; i < 18; i++) {
+        // Calcular nueva posición asegurando que sea alcanzable
+        let newX = lastX + config.spacing + (Math.random() * 100 - 50); // Variación pequeña
+        let newY;
         
-        // Controles para móvil
-        if (isMobile) {
-            const upBtn = document.getElementById('up-btn');
-            const leftBtn = document.getElementById('left-btn');
-            const rightBtn = document.getElementById('right-btn');
-            const aBtn = document.getElementById('btn-a');
-            const bBtn = document.getElementById('btn-b');
-            const pauseBtnMobile = document.getElementById('btn-pause');
-            
-            // Configurar eventos para los botones
-            function setupButton(button, control, value) {
-                const eventHandler = (e) => {
-                    e.preventDefault();
-                    controls[control] = value;
-                };
-                
-                button.addEventListener('touchstart', eventHandler);
-                button.addEventListener('mousedown', eventHandler);
-                
-                const releaseHandler = (e) => {
-                    e.preventDefault();
-                    controls[control] = !value;
-                };
-                
-                button.addEventListener('touchend', releaseHandler);
-                button.addEventListener('touchcancel', releaseHandler);
-                button.addEventListener('mouseup', releaseHandler);
-                button.addEventListener('mouseleave', releaseHandler);
-            }
-            
-            setupButton(leftBtn, 'left', true);
-            setupButton(rightBtn, 'right', true);
-            setupButton(upBtn, 'up', true);
-            setupButton(aBtn, 'up', true);
-            
-            // Para el botón B podemos asignar alguna función adicional
-            bBtn.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                if (!character.isJumping && gameStarted && !gamePaused) {
-                    character.velocityY = -character.jumpForce * 1.2; // Salto más alto con B
-                    character.isJumping = true;
-                }
-            });
-            
-            bBtn.addEventListener('mousedown', (e) => {
-                e.preventDefault();
-                if (!character.isJumping && gameStarted && !gamePaused) {
-                    character.velocityY = -character.jumpForce * 1.2; // Salto más alto con B
-                    character.isJumping = true;
-                }
-            });
-            
-            // Botón de pausa para móvil
-            pauseBtnMobile.addEventListener('click', togglePause);
+        // Alternar entre subir, bajar o mantener altura
+        const direction = Math.floor(Math.random() * 3); // 0=bajar, 1=mantener, 2=subir
+        
+        if (direction === 0) {
+            // Bajar (más fácil)
+            newY = Math.min(lastY + 30 + Math.random() * 40, canvas.height - 60);
+        } else if (direction === 1) {
+            // Mantener similar
+            newY = lastY + (Math.random() * 40 - 20);
         } else {
-            // Botón de pausa para escritorio
-            pauseBtn.addEventListener('click', togglePause);
+            // Subir (más difícil)
+            newY = Math.max(lastY - 30 - Math.random() * 40, canvas.height - 300);
         }
         
-        // Controles para teclado
-        const keys = {};
+        // Asegurar que la plataforma no esté demasiado alta o baja
+        newY = Math.max(newY, canvas.height - 350); // Máximo 350px de altura
+        newY = Math.min(newY, canvas.height - 60);  // Mínimo 60px desde el fondo
         
-        document.addEventListener('keydown', (e) => {
-            keys[e.key] = true;
-            
-            // Pausar con la tecla P
-            if (e.key === 'p' || e.key === 'P') {
-                togglePause();
-            }
-            
-            // Actualizar controles según teclado
-            if (gameStarted && !gamePaused) {
-                if (e.key === 'ArrowLeft' || e.key === 'a') {
-                    controls.left = true;
-                    characterFacing = 'left';
-                }
-                if (e.key === 'ArrowRight' || e.key === 'd') {
-                    controls.right = true;
-                    characterFacing = 'right';
-                }
-                if (e.key === 'ArrowUp' || e.key === 'w' || e.key === ' ') controls.up = true;
-            }
+        // Asegurar que el salto sea posible
+        const heightDifference = Math.abs(newY - lastY);
+        const horizontalDistance = newX - (lastX + platforms[platforms.length - 1].width);
+        
+        // Si el salto es muy difícil, ajustar la posición
+        if (heightDifference > config.maxJumpHeight || horizontalDistance > 500) {
+            newY = lastY - 50; // Hacerlo más fácil
+        }
+        
+        const platformWidth = 120 + Math.random() * 80; // Ancho entre 120 y 200px
+        
+        platforms.push({
+            x: newX,
+            y: newY,
+            width: platformWidth,
+            height: 20
         });
         
-        document.addEventListener('keyup', (e) => {
-            keys[e.key] = false;
-            
-            // Actualizar controles según teclado
-            if (e.key === 'ArrowLeft' || e.key === 'a') controls.left = false;
-            if (e.key === 'ArrowRight' || e.key === 'd') controls.right = false;
-            if (e.key === 'ArrowUp' || e.key === 'w' || e.key === ' ') controls.up = false;
+        lastX = newX;
+        lastY = newY;
+    }
+    
+    // Plataforma final más grande
+    platforms.push({
+        x: lastX + config.spacing,
+        y: canvas.height - 100,
+        width: 200,
+        height: 30
+    });
+    
+    // Ajustar el ancho del mundo según la última plataforma
+    worldWidth = lastX + 1000;
+    
+    // Generar monedas en posiciones alcanzables
+    coins = [];
+    levelCoins = 25 + (currentLevel === 'dificil' ? 5 : 0);
+    
+    for (let i = 0; i < levelCoins; i++) {
+        // Seleccionar una plataforma aleatoria
+        const platform = platforms[Math.floor(Math.random() * platforms.length)];
+        
+        // Posicionar la moneda sobre la plataforma
+        const x = platform.x + 20 + Math.random() * (platform.width - 40);
+        const y = platform.y - 25; // 25px arriba de la plataforma
+        
+        coins.push({x, y, radius: 10, collected: false});
+    }
+    
+    // Enemigos - inicialmente vacío, se generarán progresivamente
+    enemies = [];
+    
+    // Power-ups - en posiciones estratégicas
+    powerUps = [];
+    const powerUpCount = levels[currentLevel].powerUpCount;
+    
+    // Colocar power-ups en plataformas específicas (cada 5 plataformas)
+    for (let i = 0; i < powerUpCount; i++) {
+        const platformIndex = Math.min(5 + (i * 5), platforms.length - 1);
+        const platform = platforms[platformIndex];
+        
+        const x = platform.x + platform.width / 2;
+        const y = platform.y - 30;
+        
+        powerUps.push({
+            x,
+            y,
+            radius: 12,
+            color: '#00ff00',
+            type: Math.random() > 0.5 ? 'life' : 'speed',
+            collected: false
         });
-        
-        // Funciones de pausa
-        function togglePause() {
-            if (!gameStarted) return;
-            
-            gamePaused = !gamePaused;
-            
-            if (gamePaused) {
-                pauseModal.style.display = 'flex';
-            } else {
-                pauseModal.style.display = 'none';
-            }
-        }
-        
-        resumeButton.addEventListener('click', togglePause);
-        
-        // Dibujar el personaje
-        function drawCharacter() {
-            if (characterImage.src && characterImage.complete) {
-                // Calcular posición en pantalla
-                const screenX = character.x - cameraOffset;
-                const screenY = character.y;
-                
-                // Efecto de parpadeo si es invulnerable
-                if (character.invulnerable && Math.floor(gameTime / 5) % 2 === 0) {
-                    ctx.globalAlpha = 0.5;
-                }
-                
-                // Dibujar la imagen (voltear horizontalmente si mira a la izquierda)
-                if (characterFacing === 'right') {
-                    ctx.drawImage(characterImage, screenX - character.width/2, screenY - character.height, character.width, character.height);
-                } else {
-                    ctx.save();
-                    ctx.scale(-1, 1);
-                    ctx.drawImage(characterImage, -screenX - character.width/2, screenY - character.height, character.width, character.height);
-                    ctx.restore();
-                }
-                
-                ctx.globalAlpha = 1;
-            } else {
-                const screenX = character.x - cameraOffset;
-                const screenY = character.y;
-                
-                // Efecto de parpadeo si es invulnerable
-                if (character.invulnerable && Math.floor(gameTime / 5) % 2 === 0) {
-                    ctx.globalAlpha = 0.5;
-                }
-                
-                // Dibujar un placeholder mientras carga la imagen
-                ctx.beginPath();
-                ctx.fillStyle = '#ff6b6b';
-                ctx.fillRect(screenX - character.width/2, screenY - character.height, character.width, character.height);
-                ctx.strokeStyle = '#ff5252';
-                ctx.lineWidth = 2;
-                ctx.strokeRect(screenX - character.width/2, screenY - character.height, character.width, character.height);
-                
-                // Dibujar ojos del placeholder
-                ctx.fillStyle = 'white';
-                ctx.fillRect(screenX - character.width/2 + 10, screenY - character.height + 10, 8, 8);
-                ctx.fillRect(screenX - character.width/2 + 30, screenY - character.height + 10, 8, 8);
-                
-                ctx.fillStyle = 'black';
-                ctx.fillRect(screenX - character.width/2 + 12, screenY - character.height + 12, 4, 4);
-                ctx.fillRect(screenX - character.width/2 + 32, screenY - character.height + 12, 4, 4);
-                
-                ctx.globalAlpha = 1;
-                ctx.closePath();
-            }
-        }
-        
-        // Dibujar plataformas
-        function drawPlatforms() {
-            platforms.forEach(platform => {
-                // Solo dibujar plataformas que estén en el área visible
-                if (platform.x + platform.width > cameraOffset && platform.x < cameraOffset + canvas.width) {
-                    ctx.fillStyle = '#8a5835';
-                    ctx.fillRect(platform.x - cameraOffset, platform.y, platform.width, platform.height);
-                    ctx.strokeStyle = '#634221';
-                    ctx.lineWidth = 2;
-                    ctx.strokeRect(platform.x - cameraOffset, platform.y, platform.width, platform.height);
-                    
-                    // Textura de hierba en la plataforma principal
-                    if (platform.y === canvas.height - 30) {
-                        ctx.fillStyle = '#2ecc71';
-                        ctx.fillRect(platform.x - cameraOffset, platform.y, platform.width, 8);
-                    }
-                }
-            });
-        }
-        
-        // Dibujar monedas
-        function drawCoins() {
-            coins.forEach(coin => {
-                // Solo dibujar monedas que estén en el área visible
-                if (coin.x + coin.radius > cameraOffset && coin.x - coin.radius < cameraOffset + canvas.width) {
-                    if (!coin.collected) {
-                        ctx.beginPath();
-                        ctx.arc(coin.x - cameraOffset, coin.y, coin.radius, 0, Math.PI * 2);
-                        ctx.fillStyle = '#ffd700';
-                        ctx.fill();
-                        ctx.strokeStyle = '#d4af37';
-                        ctx.lineWidth = 2;
-                        ctx.stroke();
-                        ctx.closePath();
-                        
-                        // Dibujar detalles de la moneda
-                        ctx.beginPath();
-                        ctx.arc(coin.x - cameraOffset, coin.y, coin.radius / 2, 0, Math.PI * 2);
-                        ctx.fillStyle = '#d4af37';
-                        ctx.fill();
-                        ctx.closePath();
-                    }
-                }
-            });
-        }
-        
-        // Dibujar enemigos
-        function drawEnemies() {
-            enemies.forEach(enemy => {
-                // Solo dibujar enemigos que estén en el área visible
-                if (enemy.x + enemy.radius > cameraOffset && enemy.x - enemy.radius < cameraOffset + canvas.width) {
-                    ctx.beginPath();
-                    ctx.arc(enemy.x - cameraOffset, enemy.y, enemy.radius, 0, Math.PI * 2);
-                    ctx.fillStyle = enemy.color;
-                    ctx.fill();
-                    ctx.closePath();
-                    
-                    // Dibujar ojos de enemigo
-                    ctx.beginPath();
-                    ctx.arc(enemy.x - cameraOffset - 5, enemy.y - 3, 3, 0, Math.PI * 2);
-                    ctx.arc(enemy.x - cameraOffset + 5, enemy.y - 3, 3, 0, Math.PI * 2);
-                    ctx.fillStyle = 'white';
-                    ctx.fill();
-                    ctx.closePath();
-                    
-                    // Dibujar pupila de enemigo
-                    ctx.beginPath();
-                    ctx.arc(enemy.x - cameraOffset - 5, enemy.y - 3, 1.5, 0, Math.PI * 2);
-                    ctx.arc(enemy.x - cameraOffset + 5, enemy.y - 3, 1.5, 0, Math.PI * 2);
-                    ctx.fillStyle = 'black';
-                    ctx.fill();
-                    ctx.closePath();
-                    
-                    // Dibujar boca de enemigo
-                    ctx.beginPath();
-                    ctx.arc(enemy.x - cameraOffset, enemy.y + 3, 5, 0, Math.PI, false);
-                    ctx.strokeStyle = 'black';
-                    ctx.stroke();
-                    ctx.closePath();
-                }
-            });
-        }
-        
-        // Dibujar power-ups
-        function drawPowerUps() {
-            powerUps.forEach(powerUp => {
-                // Solo dibujar power-ups que estén en el área visible
-                if (powerUp.x + powerUp.radius > cameraOffset && powerUp.x - powerUp.radius < cameraOffset + canvas.width) {
-                    if (!powerUp.collected) {
-                        ctx.beginPath();
-                        ctx.arc(powerUp.x - cameraOffset, powerUp.y, powerUp.radius, 0, Math.PI * 2);
-                        ctx.fillStyle = powerUp.color;
-                        ctx.fill();
-                        ctx.closePath();
-                        
-                        // Dibujar símbolo según el tipo
-                        ctx.fillStyle = 'white';
-                        ctx.font = 'bold 16px Arial';
-                        ctx.textAlign = 'center';
-                        ctx.textBaseline = 'middle';
-                        
-                        if (powerUp.type === 'life') {
-                            ctx.fillText("+", powerUp.x - cameraOffset, powerUp.y);
-                        } else {
-                            ctx.fillText("⚡", powerUp.x - cameraOffset, powerUp.y);
-                        }
-                    }
-                }
-            });
-        }
-        
-        // Mover enemigos
-        function moveEnemies() {
-            enemies.forEach(enemy => {
-                enemy.x += enemy.speed * enemy.direction;
-                
-                // Cambiar dirección si llega a los bordes de la plataforma
-                const platform = platforms[0]; // La plataforma principal
-                if (enemy.x - enemy.radius < platform.x || enemy.x + enemy.radius > platform.x + platform.width) {
-                    enemy.direction *= -1;
-                }
-            });
-        }
-        
-        // Generar enemigos progresivamente
-        function spawnEnemies(frameCount) {
-            if (frameCount - lastEnemySpawn > enemySpawnDelay && enemies.length < levels[currentLevel].enemyCount) {
-                const speed = levels[currentLevel].enemySpeed;
-                const direction = Math.random() > 0.5 ? 1 : -1;
-                
-                // Generar enemigo en una posición aleatoria en la plataforma principal
-                const platform = platforms[0];
-                const x = platform.x + Math.random() * platform.width;
-                const y = platform.y - 15; // Sobre la plataforma
-                
-                enemies.push({
-                    x,
-                    y,
-                    radius: 15,
-                    color: '#ff0000',
-                    speed,
-                    direction
-                });
-                
-                lastEnemySpawn = frameCount;
-            }
-        }
-        
-        // Sistema de desplazamiento de cámara
-        function updateCamera() {
-            const rightThreshold = canvas.width * 0.7; // 70% del ancho de la pantalla
-            const leftThreshold = canvas.width * 0.3; // 30% del ancho de la pantalla
-            
-            // Desplazar a la derecha si el personaje se acerca al borde derecho
-            if (character.x - cameraOffset > rightThreshold) {
-                cameraOffset = character.x - rightThreshold;
-            }
-            
-            // Desplazar a la izquierda si el personaje se acerca al borde izquierdo
-            if (character.x - cameraOffset < leftThreshold) {
-                cameraOffset = character.x - leftThreshold;
-            }
-            
-            // Limitar el desplazamiento de la cámara para no salirse del mundo
-            cameraOffset = Math.max(0, Math.min(cameraOffset, worldWidth - canvas.width));
-        }
-
-function checkPlatformCollision() {
-    let onGround = false;
-    let collisionOccurred = false;
-
-    platforms.forEach(platform => {
-        // Solo verificar plataformas visibles o cercanas
-        if (platform.x + platform.width < cameraOffset - 100 ||
-            platform.x > cameraOffset + canvas.width + 100) return;
-
-        const charLeft = character.x - character.width / 2;
-        const charRight = character.x + character.width / 2;
-        const charTop = character.y - character.height;
-        const charBottom = character.y;
-
-        // Verificar si hay superposición
-        if (charRight > platform.x &&
-            charLeft < platform.x + platform.width &&
-            charBottom > platform.y &&
-            charTop < platform.y + platform.height) {
-
-            collisionOccurred = true;
-
-            // Colisión desde arriba (aterrizando en la plataforma)
-            if (character.velocityY >= 0 && 
-                charBottom - character.velocityY <= platform.y + 5) {
-                character.y = platform.y;
-                character.velocityY = 0;
-                onGround = true;
-                return;
-            }
-
-            // Colisión desde abajo (golpeando la plataforma por debajo)
-            if (character.velocityY < 0 && 
-                charTop - character.velocityY >= platform.y + platform.height - 5) {
-                character.y = platform.y + platform.height + character.height;
-                character.velocityY = 0;
-                return;
-            }
-
-            // Colisiones laterales
-            if (character.velocityX > 0 && 
-                charRight - character.velocityX <= platform.x + 5) {
-                character.x = platform.x - character.width / 2;
-                character.velocityX = 0;
-                return;
-            }
-            
-            if (character.velocityX < 0 && 
-                charLeft - character.velocityX >= platform.x + platform.width - 5) {
-                character.x = platform.x + platform.width + character.width / 2;
-                character.velocityX = 0;
-                return;
-            }
+    }
+    
+    // Ajustar gravedad según nivel
+    character.gravity = levels[currentLevel].gravity;
+    
+    // Ajustar delay de aparición de enemigos
+    enemySpawnDelay = levels[currentLevel].enemySpawnDelay;
+    
+    // Posición inicial del personaje
+    character.x = 100;
+    character.y = canvas.height - 80;
+    character.velocityX = 0;
+    character.velocityY = 0;
+    character.isJumping = false;
+    cameraOffset = 0;
+    characterFacing = 'right';
+}
+    
+    // Inicializar el tamaño del canvas
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    
+    // Iniciar juego
+    startButton.addEventListener('click', startGame);
+    
+    // También permitir iniciar con Enter en desktop
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !gameStarted) {
+            startGame();
         }
     });
-
-    // Actualizar estado de salto basado en si está en el suelo
-    character.isJumping = !onGround;
-}
+    
+    function startGame() {
+        gameStarted = true;
+        splashScreen.style.opacity = '0';
+        setTimeout(() => {
+            splashScreen.style.display = 'none';
+        }, 500);
         
-        // Recolectar monedas
-        function checkCoinCollection() {
-            coins.forEach(coin => {
-                if (!coin.collected) {
-                    // Calcular distancia entre el centro del personaje y la moneda
-                    const distance = Math.sqrt(
-                        Math.pow(character.x - coin.x, 2) + 
-                        Math.pow(character.y - character.height/2 - coin.y, 2)
-                    );
-                    
-                    if (distance < (character.width/2) + coin.radius) {
-                        coin.collected = true;
-                        score += 10;
-                        scoreDisplay.textContent = `Puntos: ${score}`;
-                        soundSystem.playCoin();
-                        
-                        // Verificar si se recolectaron todas las monedas
-                        if (coins.every(c => c.collected)) {
-                            setTimeout(() => {
-                                const timeBonus = Math.max(0, 500 - gameTime * 5);
-                                const totalScore = score + timeBonus;
-                                
-                                soundSystem.playLevelComplete();
-                                alert(`¡Nivel completado!\nPuntos: ${score}\nBonus por tiempo: ${timeBonus}\nPuntuación total: ${totalScore}`);
-                                resetGame();
-                            }, 500);
-                        }
-                    }
-                }
-            });
+        // Reiniciar estadísticas
+        score = 0;
+        lives = 3;
+        gameTime = 0;
+        updateAllDisplays(); // NUEVO: Actualizar ambos layouts
+        
+        // Iniciar temporizador
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            if (!gamePaused && gameStarted) {
+                gameTime++;
+            }
+        }, 1000);
+        
+        repositionGameElements();
+        update();
+    }
+   // Controles para móvil
+if (isMobile) {
+    const upBtn = document.getElementById('up-btn');
+    const leftBtn = document.getElementById('left-btn');
+    const rightBtn = document.getElementById('right-btn');
+    const aBtn = document.getElementById('btn-a');
+    const bBtn = document.getElementById('btn-b');
+    const pauseBtnMobile = document.getElementById('btn-pause');
+    
+    // Configurar eventos para los botones
+    function setupButton(button, control, value) {
+        const eventHandler = (e) => {
+            e.preventDefault();
+            controls[control] = value;
+        };
+        
+        button.addEventListener('touchstart', eventHandler);
+        button.addEventListener('mousedown', eventHandler);
+        
+        const releaseHandler = (e) => {
+            e.preventDefault();
+            controls[control] = !value;
+        };
+        
+        button.addEventListener('touchend', releaseHandler);
+        button.addEventListener('touchcancel', releaseHandler);
+        button.addEventListener('mouseup', releaseHandler);
+        button.addEventListener('mouseleave', releaseHandler);
+    }
+    
+    // Configurar botón izquierdo con dirección
+    leftBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        controls.left = true;
+        characterFacing = 'left';
+    });
+    
+    leftBtn.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        controls.left = true;
+        characterFacing = 'left';
+    });
+    
+    leftBtn.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        controls.left = false;
+    });
+    
+    leftBtn.addEventListener('mouseup', (e) => {
+        e.preventDefault();
+        controls.left = false;
+    });
+    
+    // Configurar botón derecho con dirección
+    rightBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        controls.right = true;
+        characterFacing = 'right';
+    });
+    
+    rightBtn.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        controls.right = true;
+        characterFacing = 'right';
+    });
+    
+    rightBtn.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        controls.right = false;
+    });
+    
+    rightBtn.addEventListener('mouseup', (e) => {
+        e.preventDefault();
+        controls.right = false;
+    });
+    
+    // Los otros botones pueden usar la función setupButton normal
+    setupButton(upBtn, 'up', true);
+    setupButton(aBtn, 'up', true);
+    
+    // Para el botón B podemos asignar alguna función adicional
+    bBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        if (!character.isJumping && gameStarted && !gamePaused) {
+            character.velocityY = -character.jumpForce * 1.2; // Salto más alto con B
+            character.isJumping = true;
+        }
+    });
+    
+    bBtn.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        if (!character.isJumping && gameStarted && !gamePaused) {
+            character.velocityY = -character.jumpForce * 1.2; // Salto más alto con B
+            character.isJumping = true;
+        }
+    });
+    
+    // Botón de pausa para móvil
+    pauseBtnMobile.addEventListener('click', togglePause);
+} else {
+        // Botón de pausa para escritorio
+        pauseBtn.addEventListener('click', togglePause);
+    }
+    
+    // Controles para teclado
+    const keys = {};
+    
+    document.addEventListener('keydown', (e) => {
+        keys[e.key] = true;
+        
+        // Pausar con la tecla P
+        if (e.key === 'p' || e.key === 'P') {
+            togglePause();
         }
         
-        // Colisión con enemigos
-        function checkEnemyCollision() {
-            if (character.invulnerable) return;
+        // Actualizar controles según teclado
+        if (gameStarted && !gamePaused) {
+            if (e.key === 'ArrowLeft' || e.key === 'a') {
+                controls.left = true;
+                characterFacing = 'left';
+            }
+            if (e.key === 'ArrowRight' || e.key === 'd') {
+                controls.right = true;
+                characterFacing = 'right';
+            }
+            if (e.key === 'ArrowUp' || e.key === 'w' || e.key === ' ') controls.up = true;
+        }
+    });
+    
+    document.addEventListener('keyup', (e) => {
+        keys[e.key] = false;
+        
+        // Actualizar controles según teclado
+        if (e.key === 'ArrowLeft' || e.key === 'a') controls.left = false;
+        if (e.key === 'ArrowRight' || e.key === 'd') controls.right = false;
+        if (e.key === 'ArrowUp' || e.key === 'w' || e.key === ' ') controls.up = false;
+    });
+    
+    // Funciones de pausa
+    function togglePause() {
+        if (!gameStarted) return;
+        
+        gamePaused = !gamePaused;
+        
+        if (gamePaused) {
+            pauseModal.style.display = 'flex';
+        } else {
+            pauseModal.style.display = 'none';
+        }
+    }
+    
+    resumeButton.addEventListener('click', togglePause);
+    
+    // Dibujar el personaje
+    function drawCharacter() {
+        if (characterImage.src && characterImage.complete) {
+            // Calcular posición en pantalla
+            const screenX = character.x - cameraOffset;
+            const screenY = character.y;
             
-            enemies.forEach(enemy => {
-                // Calcular distancia entre el centro del personaje y el enemigo
+            // Efecto de parpadeo si es invulnerable
+            if (character.invulnerable && Math.floor(gameTime / 5) % 2 === 0) {
+                ctx.globalAlpha = 0.5;
+            }
+            
+            // Dibujar la imagen (voltear horizontalmente si mira a la izquierda)
+            if (characterFacing === 'right') {
+                ctx.drawImage(characterImage, screenX - character.width/2, screenY - character.height, character.width, character.height);
+            } else {
+                ctx.save();
+                ctx.scale(-1, 1);
+                ctx.drawImage(characterImage, -screenX - character.width/2, screenY - character.height, character.width, character.height);
+                ctx.restore();
+            }
+            
+            ctx.globalAlpha = 1;
+        } else {
+            const screenX = character.x - cameraOffset;
+            const screenY = character.y;
+            
+            // Efecto de parpadeo si es invulnerable
+            if (character.invulnerable && Math.floor(gameTime / 5) % 2 === 0) {
+                ctx.globalAlpha = 0.5;
+            }
+            
+            // Dibujar un placeholder mientras carga la imagen
+            ctx.beginPath();
+            ctx.fillStyle = '#ff6b6b';
+            ctx.fillRect(screenX - character.width/2, screenY - character.height, character.width, character.height);
+            ctx.strokeStyle = '#ff5252';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(screenX - character.width/2, screenY - character.height, character.width, character.height);
+            
+            // Dibujar ojos del placeholder
+            ctx.fillStyle = 'white';
+            ctx.fillRect(screenX - character.width/2 + 10, screenY - character.height + 10, 8, 8);
+            ctx.fillRect(screenX - character.width/2 + 30, screenY - character.height + 10, 8, 8);
+            
+            ctx.fillStyle = 'black';
+            ctx.fillRect(screenX - character.width/2 + 12, screenY - character.height + 12, 4, 4);
+            ctx.fillRect(screenX - character.width/2 + 32, screenY - character.height + 12, 4, 4);
+            
+            ctx.globalAlpha = 1;
+            ctx.closePath();
+        }
+    }
+    
+    // Dibujar plataformas
+    function drawPlatforms() {
+        platforms.forEach(platform => {
+            // Solo dibujar plataformas que estén en el área visible
+            if (platform.x + platform.width > cameraOffset && platform.x < cameraOffset + canvas.width) {
+                ctx.fillStyle = '#8a5835';
+                ctx.fillRect(platform.x - cameraOffset, platform.y, platform.width, platform.height);
+                ctx.strokeStyle = '#634221';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(platform.x - cameraOffset, platform.y, platform.width, platform.height);
+                
+                // Textura de hierba en la plataforma principal
+                if (platform.y === canvas.height - 30) {
+                    ctx.fillStyle = '#2ecc71';
+                    ctx.fillRect(platform.x - cameraOffset, platform.y, platform.width, 8);
+                }
+            }
+        });
+    }
+    
+    // Dibujar monedas
+    function drawCoins() {
+        coins.forEach(coin => {
+            // Solo dibujar monedas que estén en el área visible
+            if (coin.x + coin.radius > cameraOffset && coin.x - coin.radius < cameraOffset + canvas.width) {
+                if (!coin.collected) {
+                    ctx.beginPath();
+                    ctx.arc(coin.x - cameraOffset, coin.y, coin.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = '#ffd700';
+                    ctx.fill();
+                    ctx.strokeStyle = '#d4af37';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                    ctx.closePath();
+                    
+                    // Dibujar detalles de la moneda
+                    ctx.beginPath();
+                    ctx.arc(coin.x - cameraOffset, coin.y, coin.radius / 2, 0, Math.PI * 2);
+                    ctx.fillStyle = '#d4af37';
+                    ctx.fill();
+                    ctx.closePath();
+                }
+            }
+        });
+    }
+    
+    // Dibujar enemigos
+    function drawEnemies() {
+        enemies.forEach(enemy => {
+            // Solo dibujar enemigos que estén en el área visible
+            if (enemy.x + enemy.radius > cameraOffset && enemy.x - enemy.radius < cameraOffset + canvas.width) {
+                ctx.beginPath();
+                ctx.arc(enemy.x - cameraOffset, enemy.y, enemy.radius, 0, Math.PI * 2);
+                ctx.fillStyle = enemy.color;
+                ctx.fill();
+                ctx.closePath();
+                
+                // Dibujar ojos de enemigo
+                ctx.beginPath();
+                ctx.arc(enemy.x - cameraOffset - 5, enemy.y - 3, 3, 0, Math.PI * 2);
+                ctx.arc(enemy.x - cameraOffset + 5, enemy.y - 3, 3, 0, Math.PI * 2);
+                ctx.fillStyle = 'white';
+                ctx.fill();
+                ctx.closePath();
+                
+                // Dibujar pupila de enemigo
+                ctx.beginPath();
+                ctx.arc(enemy.x - cameraOffset - 5, enemy.y - 3, 1.5, 0, Math.PI * 2);
+                ctx.arc(enemy.x - cameraOffset + 5, enemy.y - 3, 1.5, 0, Math.PI * 2);
+                ctx.fillStyle = 'black';
+                ctx.fill();
+                ctx.closePath();
+                
+                // Dibujar boca de enemigo
+                ctx.beginPath();
+                ctx.arc(enemy.x - cameraOffset, enemy.y + 3, 5, 0, Math.PI, false);
+                ctx.strokeStyle = 'black';
+                ctx.stroke();
+                ctx.closePath();
+            }
+        });
+    }
+    
+    // Dibujar power-ups
+    function drawPowerUps() {
+        powerUps.forEach(powerUp => {
+            // Solo dibujar power-ups que estén en el área visible
+            if (powerUp.x + powerUp.radius > cameraOffset && powerUp.x - powerUp.radius < cameraOffset + canvas.width) {
+                if (!powerUp.collected) {
+                    ctx.beginPath();
+                    ctx.arc(powerUp.x - cameraOffset, powerUp.y, powerUp.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = powerUp.color;
+                    ctx.fill();
+                    ctx.closePath();
+                    
+                    // Dibujar símbolo según el tipo
+                    ctx.fillStyle = 'white';
+                    ctx.font = 'bold 16px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    
+                    if (powerUp.type === 'life') {
+                        ctx.fillText("+", powerUp.x - cameraOffset, powerUp.y);
+                    } else {
+                        ctx.fillText("⚡", powerUp.x - cameraOffset, powerUp.y);
+                    }
+                }
+            }
+        });
+    }
+    
+    // Mover enemigos
+    function moveEnemies() {
+        enemies.forEach(enemy => {
+            enemy.x += enemy.speed * enemy.direction;
+            
+            // Cambiar dirección si llega a los bordes de la plataforma
+            const platform = platforms[0]; // La plataforma principal
+            if (enemy.x - enemy.radius < platform.x || enemy.x + enemy.radius > platform.x + platform.width) {
+                enemy.direction *= -1;
+            }
+        });
+    }
+    
+    // Generar enemigos progresivamente
+    function spawnEnemies(frameCount) {
+        if (frameCount - lastEnemySpawn > enemySpawnDelay && enemies.length < levels[currentLevel].enemyCount) {
+            const speed = levels[currentLevel].enemySpeed;
+            const direction = Math.random() > 0.5 ? 1 : -1;
+            
+            // Generar enemigo en una posición aleatoria en la plataforma principal
+            const platform = platforms[0];
+            const x = platform.x + Math.random() * platform.width;
+            const y = platform.y - 15; // Sobre la plataforma
+            
+            enemies.push({
+                x,
+                y,
+                radius: 15,
+                color: '#ff0000',
+                speed,
+                direction
+            });
+            
+            lastEnemySpawn = frameCount;
+        }
+    }
+    
+    // Sistema de desplazamiento de cámara
+    function updateCamera() {
+        const rightThreshold = canvas.width * 0.7; // 70% del ancho de la pantalla
+        const leftThreshold = canvas.width * 0.3; // 30% del ancho de la pantalla
+        
+        // Desplazar a la derecha si el personaje se acerca al borde derecho
+        if (character.x - cameraOffset > rightThreshold) {
+            cameraOffset = character.x - rightThreshold;
+        }
+        
+        // Desplazar a la izquierda si el personaje se acerca al borde izquierdo
+        if (character.x - cameraOffset < leftThreshold) {
+            cameraOffset = character.x - leftThreshold;
+        }
+        
+        // Limitar el desplazamiento de la cámara para no salirse del mundo
+        cameraOffset = Math.max(0, Math.min(cameraOffset, worldWidth - canvas.width));
+    }
+
+    function checkPlatformCollision() {
+        let onGround = false;
+        let collisionOccurred = false;
+
+        platforms.forEach(platform => {
+            // Solo verificar plataformas visibles o cercanas
+            if (platform.x + platform.width < cameraOffset - 100 ||
+                platform.x > cameraOffset + canvas.width + 100) return;
+
+            const charLeft = character.x - character.width / 2;
+            const charRight = character.x + character.width / 2;
+            const charTop = character.y - character.height;
+            const charBottom = character.y;
+
+            // Verificar si hay superposición
+            if (charRight > platform.x &&
+                charLeft < platform.x + platform.width &&
+                charBottom > platform.y &&
+                charTop < platform.y + platform.height) {
+
+                collisionOccurred = true;
+
+                // Colisión desde arriba (aterrizando en la plataforma)
+                if (character.velocityY >= 0 && 
+                    charBottom - character.velocityY <= platform.y + 5) {
+                    character.y = platform.y;
+                    character.velocityY = 0;
+                    onGround = true;
+                    return;
+                }
+
+                // Colisión desde abajo (golpeando la plataforma por debajo)
+                if (character.velocityY < 0 && 
+                    charTop - character.velocityY >= platform.y + platform.height - 5) {
+                    character.y = platform.y + platform.height + character.height;
+                    character.velocityY = 0;
+                    return;
+                }
+
+                // Colisiones laterales
+                if (character.velocityX > 0 && 
+                    charRight - character.velocityX <= platform.x + 5) {
+                    character.x = platform.x - character.width / 2;
+                    character.velocityX = 0;
+                    return;
+                }
+                
+                if (character.velocityX < 0 && 
+                    charLeft - character.velocityX >= platform.x + platform.width - 5) {
+                    character.x = platform.x + platform.width + character.width / 2;
+                    character.velocityX = 0;
+                    return;
+                }
+            }
+        });
+
+        // Actualizar estado de salto basado en si está en el suelo
+        character.isJumping = !onGround;
+    }
+    
+    // Recolectar monedas
+    function checkCoinCollection() {
+        coins.forEach(coin => {
+            if (!coin.collected) {
+                // Calcular distancia entre el centro del personaje y la moneda
                 const distance = Math.sqrt(
-                    Math.pow(character.x - enemy.x, 2) + 
-                    Math.pow(character.y - character.height/2 - enemy.y, 2)
+                    Math.pow(character.x - coin.x, 2) + 
+                    Math.pow(character.y - character.height/2 - coin.y, 2)
                 );
                 
-                if (distance < (character.width/2) + enemy.radius) {
-                    // El jugador pierde una vida
-                    lives--;
-                    livesDisplay.textContent = `Vidas: ${lives}`;
-                    soundSystem.playHit();
+                if (distance < (character.width/2) + coin.radius) {
+                    coin.collected = true;
+                    score += 10;
+                    updateScore(score); // NUEVO: Actualizar ambos layouts
+                    soundSystem.playCoin();
                     
-                    // Hacer al jugador invulnerable temporalmente
-                    character.invulnerable = true;
-                    setTimeout(() => {
-                        character.invulnerable = false;
-                    }, 2000);
-                    
-                    // Game over si se acaban las vidas
-                    if (lives <= 0) {
+                    // Verificar si se recolectaron todas las monedas
+                    if (coins.every(c => c.collected)) {
                         setTimeout(() => {
-                            soundSystem.playGameOver();
-                            alert(`¡Game Over!\nPuntuación final: ${score}`);
+                            const timeBonus = Math.max(0, 500 - gameTime * 5);
+                            const totalScore = score + timeBonus;
+                            
+                            soundSystem.playLevelComplete();
+                            alert(`¡Nivel completado!\nPuntos: ${score}\nBonus por tiempo: ${timeBonus}\nPuntuación total: ${totalScore}`);
                             resetGame();
                         }, 500);
                     }
                 }
-            });
-        }
+            }
+        });
+    }
+    
+    // Colisión con enemigos
+    function checkEnemyCollision() {
+        if (character.invulnerable) return;
         
-        // Recolectar power-ups
-        function checkPowerUpCollection() {
-            powerUps.forEach(powerUp => {
-                if (!powerUp.collected) {
-                    // Calcular distancia entre el centro del personaje y el power-up
-                    const distance = Math.sqrt(
-                        Math.pow(character.x - powerUp.x, 2) + 
-                        Math.pow(character.y - character.height/2 - powerUp.y, 2)
-                    );
-                    
-                    if (distance < (character.width/2) + powerUp.radius) {
-                        powerUp.collected = true;
-                        soundSystem.playPowerUp();
-                        
-                        if (powerUp.type === 'life') {
-                            // Añadir vida extra
-                            lives++;
-                            livesDisplay.textContent = `Vidas: ${lives}`;
-                        } else {
-                            // Aumentar velocidad temporalmente
-                            character.speed += 3;
-                            setTimeout(() => {
-                                character.speed -= 3;
-                            }, 5000);
-                        }
-                    }
-                }
-            });
-        }
-        
-        // Reiniciar el juego
-        function resetGame() {
-            score = 0;
-            lives = 3;
-            gameTime = 0; // Reset game time
-            scoreDisplay.textContent = `Puntos: ${score}`;
-            livesDisplay.textContent = `Vidas: ${lives}`;
-            coins.forEach(coin => coin.collected = false);
-            powerUps.forEach(powerUp => powerUp.collected = false);
-            enemies = []; // Clear enemies array
-            character.x = 300;
-            character.y = canvas.height - 80; // Fixed reset position
-            character.velocityX = 0;
-            character.velocityY = 0;
-            character.isJumping = false; // Reset jumping state
-            character.invulnerable = false;
-            cameraOffset = 0;
-            characterFacing = 'right';
-            frameCount = 0; // Reset frame count
-            lastEnemySpawn = 0; // Reset enemy spawn timer
+        enemies.forEach(enemy => {
+            // Calcular distancia entre el centro del personaje y el enemigo
+            const distance = Math.sqrt(
+                Math.pow(character.x - enemy.x, 2) + 
+                Math.pow(character.y - character.height/2 - enemy.y, 2)
+            );
             
-            if (timerInterval) {
-                clearInterval(timerInterval);
-            }
-            
-            // Mostrar pantalla de inicio
-            gameStarted = false;
-            gamePaused = false; // Reset pause state
-            splashScreen.style.display = 'flex';
-            setTimeout(() => {
-                splashScreen.style.opacity = '1';
-            }, 50);
-        }
-        
-        // Actualizar juego
-        let frameCount = 0;
-        function update() {
-            if (!gameStarted || gamePaused) {
-                requestAnimationFrame(update);
-                return;
-            }
-            
-            frameCount++;
-            
-            // Limpiar canvas
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // Dibujar fondo
-            if (isMobile) {
-                ctx.fillStyle = '#6b8cff';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-            } else {
-                // Fondo más elaborado para escritorio
-                const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-                gradient.addColorStop(0, '#87CEEB');
-                gradient.addColorStop(1, '#1e90ff');
-                ctx.fillStyle = gradient;
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                
-                // Dibujar nubes de fondo (que se mueven con la cámara)
-                // ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-                // ctx.beginPath();
-                // ctx.arc(100 - cameraOffset * 0.2, 50, 25, 0, Math.PI * 2);
-                // ctx.arc(130 - cameraOffset * 0.2, 40, 30, 0, Math.PI * 2);
-                // ctx.arc(160 - cameraOffset * 0.2, 50, 25, 0, Math.PI * 2);
-                // ctx.fill();
-                
-                // ctx.beginPath();
-                // ctx.arc(canvas.width - 100 - cameraOffset * 0.2, 70, 25, 0, Math.PI * 2);
-                // ctx.arc(canvas.width - 130 - cameraOffset * 0.2, 60, 30, 0, Math.PI * 2);
-                // ctx.arc(canvas.width - 160 - cameraOffset * 0.2, 70, 25, 0, Math.PI * 2);
-                // ctx.fill();
-            }
-            
-            // Aplicar gravedad
-            character.velocityY += character.gravity;
-            
-            // Movimiento horizontal basado en controles
-            if (controls.left && !controls.right) {
-                character.velocityX = -character.speed;
-            } else if (controls.right && !controls.left) {
-                character.velocityX = character.speed;
-            } else {
-                character.velocityX *= character.friction;
-            }
-            
-            // Salto
-            if (controls.up && !character.isJumping) {
-                character.velocityY = -character.jumpForce;
-                character.isJumping = true;
-                controls.up = false; // Resetear control de salto
-                soundSystem.playJump();
-            }
-            
-            // Actualizar posición
-            character.x += character.velocityX;
-            character.y += character.velocityY;
-            
-            // Actualizar cámara
-            updateCamera();
-            
-            // Generar enemigos
-            spawnEnemies(frameCount);
-            
-            // Mover enemigos
-            moveEnemies();
-            
-            // Limites del canvas (solo en eje Y, el eje X ahora es infinito con desplazamiento)
-            if (character.y - character.height < 0) {
-                character.y = character.height;
-                character.velocityY = 0;
-            } else if (character.y > canvas.height + 100) {
-                character.x = 300;
-                character.y = canvas.height - 80;
-                character.velocityX = 0;
-                character.velocityY = 0;
-                character.isJumping = false;
+            if (distance < (character.width/2) + enemy.radius) {
+                // El jugador pierde una vida
                 lives--;
-                livesDisplay.textContent = `Vidas: ${lives}`;
+                updateLives(lives); // NUEVO: Actualizar ambos layouts
+                soundSystem.playHit();
                 
+                // Hacer al jugador invulnerable temporalmente
+                character.invulnerable = true;
+                setTimeout(() => {
+                    character.invulnerable = false;
+                }, 2000);
+                
+                // Game over si se acaban las vidas
                 if (lives <= 0) {
                     setTimeout(() => {
+                        soundSystem.playGameOver();
                         alert(`¡Game Over!\nPuntuación final: ${score}`);
                         resetGame();
                     }, 500);
                 }
             }
-            
-            // Limites del mundo en X
-            if (character.x - character.width/2 < 0) {
-                character.x = character.width/2;
-                character.velocityX = 0;
-            } else if (character.x + character.width/2 > worldWidth) {
-                character.x = worldWidth - character.width/2;
-                character.velocityX = 0;
+        });
+    }
+    
+    // Recolectar power-ups
+    function checkPowerUpCollection() {
+        powerUps.forEach(powerUp => {
+            if (!powerUp.collected) {
+                // Calcular distancia entre el centro del personaje y el power-up
+                const distance = Math.sqrt(
+                    Math.pow(character.x - powerUp.x, 2) + 
+                    Math.pow(character.y - character.height/2 - powerUp.y, 2)
+                );
+                
+                if (distance < (character.width/2) + powerUp.radius) {
+                    powerUp.collected = true;
+                    soundSystem.playPowerUp();
+                    
+                    if (powerUp.type === 'life') {
+                        // Añadir vida extra
+                        lives++;
+                        updateLives(lives); // NUEVO: Actualizar ambos layouts
+                    } else {
+                        // Aumentar velocidad temporalmente
+                        character.speed += 3;
+                        setTimeout(() => {
+                            character.speed -= 3;
+                        }, 5000);
+                    }
+                }
             }
-            
-            // Verificar colisiones
-            checkPlatformCollision();
-            checkCoinCollection();
-            checkEnemyCollision();
-            checkPowerUpCollection();
-            
-            // Dibujar elementos
-            drawPlatforms();
-            drawCoins();
-            drawEnemies();
-            drawPowerUps();
-            drawCharacter();
-            
-            // Dibujar tiempo de juego
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
-            ctx.fillRect(canvas.width - 120, 10, 110, 40);
-            ctx.fillStyle = 'white';
-            ctx.font = '16px Arial';
-            ctx.textAlign = 'right';
-            ctx.fillText(`Tiempo: ${gameTime}s`, canvas.width - 15, 35);
-            
-            // Dibujar posición en el mundo
-            
-            // ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
-            // ctx.fillRect(10, 10, 130, 40);
-            // ctx.fillStyle = 'white';
-            // ctx.font = '16px Arial';
-            // ctx.textAlign = 'left';
-            // // ctx.fillText(`Pos: ${Math.floor(character.x)}`, 20, 35);
-            
-            // Dibujar botón de control de sonido
-
-            // const soundButtonSize = 30;
-            // const soundButtonX = canvas.width - soundButtonSize - 10;
-            // const soundButtonY = 60;
-            
-            // ctx.fillStyle = soundSystem.enabled ? 'rgba(0, 255, 0, 0.6)' : 'rgba(255, 0, 0, 0.6)';
-            // ctx.fillRect(soundButtonX, soundButtonY, soundButtonSize, soundButtonSize);
-            // ctx.strokeStyle = 'white';
-            // ctx.lineWidth = 2;
-            // ctx.strokeRect(soundButtonX, soundButtonY, soundButtonSize, soundButtonSize);
-            
-            // ctx.fillStyle = 'white';
-            // ctx.font = '16px Arial';
-            // ctx.textAlign = 'center';
-            // ctx.fillText('🔊', soundButtonX + soundButtonSize/2, soundButtonY + soundButtonSize/2 + 5);
-            
-            // Solicitar siguiente frame
-            requestAnimationFrame(update);
+        });
+    }
+    
+    // Reiniciar el juego
+    function resetGame() {
+        score = 0;
+        lives = 3;
+        gameTime = 0; // Reset game time
+        updateAllDisplays(); // NUEVO: Actualizar ambos layouts
+        coins.forEach(coin => coin.collected = false);
+        powerUps.forEach(powerUp => powerUp.collected = false);
+        enemies = []; // Clear enemies array
+        character.x = 300;
+        character.y = canvas.height - 80; // Fixed reset position
+        character.velocityX = 0;
+        character.velocityY = 0;
+        character.isJumping = false; // Reset jumping state
+        character.invulnerable = false;
+        cameraOffset = 0;
+        characterFacing = 'right';
+        frameCount = 0; // Reset frame count
+        lastEnemySpawn = 0; // Reset enemy spawn timer
+        
+        if (timerInterval) {
+            clearInterval(timerInterval);
         }
-
-        canvas.addEventListener('click', (e) => {
-            if (!gameStarted) return;
+        
+        // Mostrar pantalla de inicio
+        gameStarted = false;
+        gamePaused = false; // Reset pause state
+        splashScreen.style.display = 'flex';
+        setTimeout(() => {
+            splashScreen.style.opacity = '1';
+        }, 50);
+    }
+    
+    // Actualizar juego
+    let frameCount = 0;
+    function update() {
+        if (!gameStarted || gamePaused) {
+            requestAnimationFrame(update);
+            return;
+        }
+        
+        frameCount++;
+        
+        // Limpiar canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Dibujar fondo
+        if (isMobile) {
+            ctx.fillStyle = '#6b8cff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        } else {
+            // Fondo más elaborado para escritorio
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#87CEEB');
+            gradient.addColorStop(1, '#1e90ff');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+        
+        // Aplicar gravedad
+        character.velocityY += character.gravity;
+        
+        // Movimiento horizontal basado en controles
+        if (controls.left && !controls.right) {
+            character.velocityX = -character.speed;
+        } else if (controls.right && !controls.left) {
+            character.velocityX = character.speed;
+        } else {
+            character.velocityX *= character.friction;
+        }
+        
+        // Salto
+        if (controls.up && !character.isJumping) {
+            character.velocityY = -character.jumpForce;
+            character.isJumping = true;
+            controls.up = false; // Resetear control de salto
+            soundSystem.playJump();
+        }
+        
+        // Actualizar posición
+        character.x += character.velocityX;
+        character.y += character.velocityY;
+        
+        // Actualizar cámara
+        updateCamera();
+        
+        // Generar enemigos
+        spawnEnemies(frameCount);
+        
+        // Mover enemigos
+        moveEnemies();
+        
+        // Limites del canvas (solo en eje Y, el eje X ahora es infinito con desplazamiento)
+        if (character.y - character.height < 0) {
+            character.y = character.height;
+            character.velocityY = 0;
+        } else if (character.y > canvas.height + 100) {
+            character.x = 300;
+            character.y = canvas.height - 80;
+            character.velocityX = 0;
+            character.velocityY = 0;
+            character.isJumping = false;
+            lives--;
+            updateLives(lives); // NUEVO: Actualizar ambos layouts
             
-            const rect = canvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            
-            // Check if click is on sound button
-            const soundButtonSize = 30;
-            const soundButtonX = canvas.width - soundButtonSize - 10;
-            const soundButtonY = 60;
-            
-            if (x >= soundButtonX && x <= soundButtonX + soundButtonSize &&
-                y >= soundButtonY && y <= soundButtonY + soundButtonSize) {
-                soundSystem.toggleSound();
+            if (lives <= 0) {
+                setTimeout(() => {
+                    alert(`¡Game Over!\nPuntuación final: ${score}`);
+                    resetGame();
+                }, 500);
             }
-        });
+        }
+        
+        // Limites del mundo en X
+        if (character.x - character.width/2 < 0) {
+            character.x = character.width/2;
+            character.velocityX = 0;
+        } else if (character.x + character.width/2 > worldWidth) {
+            character.x = worldWidth - character.width/2;
+            character.velocityX = 0;
+        }
+        
+        // Verificar colisiones
+        checkPlatformCollision();
+        checkCoinCollection();
+        checkEnemyCollision();
+        checkPowerUpCollection();
+        
+        // Dibujar elementos
+        drawPlatforms();
+        drawCoins();
+        drawEnemies();
+        drawPowerUps();
+        drawCharacter();
+        
+        // Dibujar tiempo de juego
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+        ctx.fillRect(canvas.width - 120, 10, 110, 40);
+        ctx.fillStyle = 'white';
+        ctx.font = '16px Arial';
+        ctx.textAlign = 'right';
+        ctx.fillText(`Tiempo: ${gameTime}s`, canvas.width - 15, 35);
+        
+        // Solicitar siguiente frame
+        requestAnimationFrame(update);
+    }
 
-        canvas.addEventListener('touchstart', (e) => {
-            if (!gameStarted) return;
-            e.preventDefault();
-            
-            const rect = canvas.getBoundingClientRect();
-            const touch = e.touches[0];
-            const x = touch.clientX - rect.left;
-            const y = touch.clientY - rect.top;
-            
-            // Check if touch is on sound button
-            const soundButtonSize = 30;
-            const soundButtonX = canvas.width - soundButtonSize - 10;
-            const soundButtonY = 60;
-            
-            if (x >= soundButtonX && x <= soundButtonX + soundButtonSize &&
-                y >= soundButtonY && y <= soundButtonY + soundButtonSize) {
-                soundSystem.toggleSound();
-            }
-        });
-    </script>
+    canvas.addEventListener('click', (e) => {
+        if (!gameStarted) return;
+        
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        
+        // Check if click is on sound button
+        const soundButtonSize = 30;
+        const soundButtonX = canvas.width - soundButtonSize - 10;
+        const soundButtonY = 60;
+        
+        if (x >= soundButtonX && x <= soundButtonX + soundButtonSize &&
+            y >= soundButtonY && y <= soundButtonY + soundButtonSize) {
+            soundSystem.toggleSound();
+        }
+    });
+
+    canvas.addEventListener('touchstart', (e) => {
+        if (!gameStarted) return;
+        e.preventDefault();
+        
+        const rect = canvas.getBoundingClientRect();
+        const touch = e.touches[0];
+        const x = touch.clientX - rect.left;
+        const y = touch.clientY - rect.top;
+        
+        // Check if touch is on sound button
+        const soundButtonSize = 30;
+        const soundButtonX = canvas.width - soundButtonSize - 10;
+        const soundButtonY = 60;
+        
+        if (x >= soundButtonX && x <= soundButtonX + soundButtonSize &&
+            y >= soundButtonY && y <= soundButtonY + soundButtonSize) {
+            soundSystem.toggleSound();
+        }
+    });
+</script>
 </body>
 </html>
