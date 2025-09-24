@@ -552,6 +552,7 @@
     
     <!-- Pantalla de inicio -->
     <div id="splash-screen">
+        <img src="https://res.cloudinary.com/dipv76dpn/image/upload/v1757965673/Rosy/ivni8lei5dqqrclfvlm3.png" alt="Logo del Juego" width="100" height="100" style="margin-bottom: 20px;">
         <div class="game-title">Fantasma Come Hamburguesas</div>
         
         <div class="level-selector">
@@ -825,7 +826,11 @@
     let worldWidth = 4000; // Ancho total del mundo (más allá de la pantalla)
     let characterImage = new Image();
     let characterFacing = 'right'; // Dirección del personaje
-    
+    let animationFrameId;
+
+    // Variables de nivel
+    let currentROM = 1;
+    let door = null; // { x: number, y: number, width: number, height: number, active: boolean }
     // Cargar la imagen del personaje
     characterImage.src = 'https://res.cloudinary.com/dipv76dpn/image/upload/v1757965673/Rosy/ivni8lei5dqqrclfvlm3.png';
     
@@ -883,7 +888,36 @@
             repositionGameElements();
         }
     }
+    // Dibujar la puerta
+function drawDoor() {
+    if (!door || !door.active) return;
     
+    const screenX = door.x - cameraOffset;
+    const screenY = door.y;
+    
+    // Solo dibujar si está en la pantalla
+    if (screenX + door.width < 0 || screenX > canvas.width) return;
+    
+    // Dibujar puerta
+    ctx.fillStyle = '#8B4513'; // Marrón
+    ctx.fillRect(screenX, screenY, door.width, door.height);
+    
+    // Detalles de la puerta
+    ctx.fillStyle = '#5D4037';
+    ctx.fillRect(screenX + 5, screenY + 5, door.width - 10, door.height - 10);
+    
+    // Manija
+    ctx.fillStyle = '#FFD700';
+    ctx.beginPath();
+    ctx.arc(screenX + door.width - 15, screenY + door.height / 2, 5, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Efecto de brillo intermitente
+    if (Math.floor(gameTime / 10) % 2 === 0) {
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+        ctx.fillRect(screenX + 10, screenY + 10, door.width - 20, 10);
+    }
+}
     // Variables del juego
     const character = {
         x: 300,
@@ -1559,7 +1593,7 @@ if (isMobile) {
         character.isJumping = !onGround;
     }
     
-    // Recolectar monedas
+   // Recolectar monedas
     function checkCoinCollection() {
         coins.forEach(coin => {
             if (!coin.collected) {
@@ -1572,25 +1606,60 @@ if (isMobile) {
                 if (distance < (character.width/2) + coin.radius) {
                     coin.collected = true;
                     score += 10;
-                    updateScore(score); // NUEVO: Actualizar ambos layouts
+                    updateScore(score);
                     soundSystem.playCoin();
                     
                     // Verificar si se recolectaron todas las monedas
                     if (coins.every(c => c.collected)) {
-                        setTimeout(() => {
-                            const timeBonus = Math.max(0, 500 - gameTime * 5);
-                            const totalScore = score + timeBonus;
-                            
-                            soundSystem.playLevelComplete();
-                            alert(`¡Nivel completado!\nPuntos: ${score}\nBonus por tiempo: ${timeBonus}\nPuntuación total: ${totalScore}`);
-                            resetGame();
-                        }, 500);
+                        // En lugar de mostrar alert, activar la puerta
+                        activateDoor();
                     }
                 }
             }
         });
     }
+    function activateDoor() {
+    // Posicionar la puerta al final del nivel, por ejemplo en la última plataforma
+    const lastPlatform = platforms[platforms.length - 1];
+    door = {
+        x: lastPlatform.x + lastPlatform.width / 2 - 25, // Centrada en la plataforma
+        y: lastPlatform.y - 60, // 60px por encima de la plataforma
+        width: 50,
+        height: 60,
+        active: true
+    };
+}
+function checkDoorCollision() {
+    if (!door || !door.active) return;
+
+    // Colisión simple entre el personaje y la puerta
+    if (character.x < door.x + door.width &&
+        character.x + character.width > door.x &&
+        character.y < door.y + door.height &&
+        character.y + character.height > door.y) {
+        // Colisión detectada, pasar al siguiente nivel
+        nextROM();
+    }
+}
+function nextROM() {
+    currentROM++;
+    // Mantener la dificultad (currentLevel) y las estadísticas (score, lives)
     
+    // Reposicionar elementos para el nuevo ROM
+    repositionGameElements();
+    
+    // Desactivar la puerta hasta que se recojan todas las monedas again
+    door.active = false;
+    door = null;
+    
+    // Opcional: mostrar un mensaje de cambio de nivel
+    showROMTransition();
+}
+
+function showROMTransition() {
+    // Podemos mostrar un mensaje en el canvas o un alert temporal
+    alert(`¡Felicidades! Pasando al ROM ${currentROM}`);
+}
     // Colisión con enemigos
     function checkEnemyCollision() {
         if (character.invulnerable) return;
@@ -1656,44 +1725,74 @@ if (isMobile) {
         });
     }
     
-    // Reiniciar el juego
-    function resetGame() {
-        score = 0;
-        lives = 3;
-        gameTime = 0; // Reset game time
-        updateAllDisplays(); // NUEVO: Actualizar ambos layouts
-        coins.forEach(coin => coin.collected = false);
-        powerUps.forEach(powerUp => powerUp.collected = false);
-        enemies = []; // Clear enemies array
-        character.x = 300;
-        character.y = canvas.height - 80; // Fixed reset position
-        character.velocityX = 0;
-        character.velocityY = 0;
-        character.isJumping = false; // Reset jumping state
-        character.invulnerable = false;
-        cameraOffset = 0;
-        characterFacing = 'right';
-        frameCount = 0; // Reset frame count
-        lastEnemySpawn = 0; // Reset enemy spawn timer
-        
-        if (timerInterval) {
-            clearInterval(timerInterval);
-        }
-        
-        // Mostrar pantalla de inicio
-        gameStarted = false;
-        gamePaused = false; // Reset pause state
-        splashScreen.style.display = 'flex';
-        setTimeout(() => {
-            splashScreen.style.opacity = '1';
-        }, 50);
+// Reiniciar el juego RESPETANDO la dificultad seleccionada
+function resetGame() {
+    // Cancelar cualquier animación en curso
+    cancelAnimationFrame(animationFrameId);
+    
+    // Reiniciar estadísticas básicas
+    score = 0;
+    lives = 3;
+    gameTime = 0;
+    
+    // Actualizar displays
+    updateAllDisplays();
+    
+    // Reiniciar arrays de objetos del juego
+    coins.forEach(coin => coin.collected = false);
+    powerUps.forEach(powerUp => powerUp.collected = false);
+    enemies = [];
+    
+    // Reiniciar posición del personaje
+    character.x = 100;
+    character.y = canvas.height - 80;
+    character.velocityX = 0;
+    character.velocityY = 0;
+    character.isJumping = false;
+    character.invulnerable = false;
+    
+    // Reiniciar configuración de la cámara y dirección
+    cameraOffset = 0;
+    characterFacing = 'right';
+    frameCount = 0;
+    lastEnemySpawn = 0;
+    
+    // CRÍTICO: Reconfigurar el personaje según el nivel actual
+    character.speed = isMobile ? 5 : 8;
+    character.jumpForce = isMobile ? 15 : 20;
+    character.gravity = levels[currentLevel].gravity;
+    
+    // Reiniciar temporizador
+    if (timerInterval) {
+        clearInterval(timerInterval);
     }
     
+    // Recrear el mundo con la dificultad actual
+    repositionGameElements();
+    
+    // Reiniciar controles
+    controls = {
+        left: false,
+        right: false,
+        up: false
+    };
+    
+    // Mostrar pantalla de inicio
+    gameStarted = false;
+    gamePaused = false;
+    splashScreen.style.display = 'flex';
+    setTimeout(() => {
+        splashScreen.style.opacity = '1';
+    }, 50);
+}
+    
+  
     // Actualizar juego
     let frameCount = 0;
     function update() {
         if (!gameStarted || gamePaused) {
-            requestAnimationFrame(update);
+            // Si el juego no está activo, salir pero mantener la referencia
+            animationFrameId = requestAnimationFrame(update);
             return;
         }
         
@@ -1783,14 +1882,14 @@ if (isMobile) {
         checkCoinCollection();
         checkEnemyCollision();
         checkPowerUpCollection();
-        
+        checkDoorCollision();
         // Dibujar elementos
         drawPlatforms();
         drawCoins();
         drawEnemies();
         drawPowerUps();
         drawCharacter();
-        
+        drawCharacter();
         // Dibujar tiempo de juego
         ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
         ctx.fillRect(canvas.width - 120, 10, 110, 40);
@@ -1800,7 +1899,7 @@ if (isMobile) {
         ctx.fillText(`Tiempo: ${gameTime}s`, canvas.width - 15, 35);
         
         // Solicitar siguiente frame
-        requestAnimationFrame(update);
+        animationFrameId = requestAnimationFrame(update);
     }
 
     canvas.addEventListener('click', (e) => {
