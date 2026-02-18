@@ -1,0 +1,123 @@
+﻿        /* Pantalla de inicio */
+        
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, #e74c3c, #c0392b);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 0.5s ease;
+        }
+        
+        .game-title {
+            text-align: center;
+            font-size: 3.5rem;
+            font-weight: bold;
+            margin-bottom: 30px;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
+            color: white;
+        }
+        
+        .start-button {
+            padding: 15px 40px;
+            font-size: 1.5rem;
+            background: linear-gradient(to bottom, #2ecc71, #27ae60);
+            border: none;
+            border-radius: 50px;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-bottom: 20px;
+        }
+        
+        .start-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+        
+        .controls-info {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 1.2rem;
+            max-width: 80%;
+            line-height: 1.6;
+        }
+        
+        /* Selector de nivel */
+        .level-selector {
+            display: flex;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .level-btn {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid white;
+            border-radius: 30px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .level-btn.active {
+            background: #2ecc71;
+            transform: scale(1.1);
+        }
+        
+        /* Estilos para mÃ³vil */
+
+        /* Modal de pausa */
+        #pause-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+        }
+        
+        .pause-content {
+            background: linear-gradient(to bottom, #e74c3c, #c0392b);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            max-width: 80%;
+        }
+        
+        .pause-title {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+        
+        .resume-button {
+            padding: 12px 30px;
+            font-size: 1.2rem;
+            background: linear-gradient(to bottom, #2ecc71, #27ae60);
+            border: none;
+            border-radius: 50px;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            margin-top: 15px;
+        }
+        
+        /* Efectos de pulsaciÃ³n */
+        .d-pad-btn:active, .action-btn:active, .start-button:active, .resume-button:active, .level-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+        }
+        

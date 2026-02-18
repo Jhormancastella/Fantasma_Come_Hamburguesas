@@ -1,0 +1,215 @@
+﻿        .mobile-layout {
+            display: none;
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+        }
+        
+        .console-body {
+            position: relative;
+            width: 100%;
+            height: 600px;
+            background: linear-gradient(to bottom, #e74c3c, #c0392b);
+            border-radius: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+            overflow: hidden;
+            padding: 20px;
+            border: 8px solid #2c3e50;
+        }
+        
+        .console-screen-area {
+            width: 90%;
+            height: 55%;
+            background-color: #34495e;
+            margin: 20px auto;
+            border-radius: 15px;
+            border: 6px solid #2c3e50;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .console-controls {
+            display: flex;
+            justify-content: space-between;
+            
+            margin-top: 20px;
+        }
+        
+        .d-pad {
+            width: 150px;
+            height: 150px;
+            position: relative;
+        }
+        
+        .d-pad-center {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background-color: #7f8c8d;
+            border-radius: 50%;
+            top: 45px;
+            left: 45px;
+            z-index: 2;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+        }
+        
+        .d-pad-btn {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background-color: #7f8c8d;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+            z-index: 1;
+            cursor: pointer;
+        }
+        
+        .d-pad-up {
+            top: 0;
+            left: 50px;
+        }
+        
+        .d-pad-down {
+            bottom: 0;
+            left: 50px;
+        }
+        
+        .d-pad-left {
+            top: 50px;
+            left: 0;
+        }
+        
+        .d-pad-right {
+            top: 50px;
+            right: 0;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .action-btn {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: linear-gradient(to bottom, #3498db, #2980b9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+            border: 3px solid #2c3e50;
+            cursor: pointer;
+        }
+        
+        #btn-a {
+            background: linear-gradient(to bottom, #2ecc71, #27ae60);
+        }
+        
+        #btn-b {
+            background: linear-gradient(to bottom, #e74c3c, #c0392b);
+        }
+        
+        #btn-pause {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(to bottom, #f39c12, #e67e22);
+            font-size: 16px;
+        }
+        
+        .power-light {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background-color: #2ecc71;
+            box-shadow: 0 0 10px #2ecc71;
+        }
+        
+        .brand {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #ecf0f1;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        
+        /* Estilos para escritorio con efecto TV CRT */
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .mobile-layout {
+                display: block;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+                margin-bottom: 10px;
+            }
+            
+            .game-title {
+                font-size: 2.5rem;
+            }
+            
+            .d-pad {
+                width: 120px;
+                height: 120px;
+            }
+            
+            .d-pad-center {
+                width: 50px;
+                height: 50px;
+                top: 35px;
+                left: 35px;
+            }
+            
+            .d-pad-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 18px;
+            }
+            
+            .d-pad-up {
+                left: 40px;
+            }
+            
+            .d-pad-down {
+                left: 40px;
+            }
+            
+            .d-pad-left {
+                top: 40px;
+            }
+            
+            .d-pad-right {
+                top: 40px;
+            }
+            
+            .action-btn {
+                width: 35px;
+                height: 35px;
+            }
+            
+            #btn-pause {
+                width: 50px;
+                height: 50px;
+                font-size: 14px;
+            }
+        }
