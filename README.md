@@ -1,12 +1,18 @@
 # 🎮 Fantasma Come Hamburguesas
 ---
-## enlace web
-https://jhormancastella.github.io/Fantasma_Come_Hamburguesas/
+## web 
+<div align="center">
+
+Explóralo y dime qué te parece.
+
+[![Ver Fantasma Come Hamburguesas en Vivo](https://img.shields.io/badge/👻_Ver_Fantasma_Come_Hamburguesas_En_Vivo-Click_Aquí-2EA043?style=for-the-badge&logo=google-chrome&logoColor=white)](https://jhormancastella.github.io/Fantasma_Come_Hamburguesas/)
+</div>
+
 ---
 
 ## 📖 Descripción
 
-Fantasma Come Hamburguesas es un juego de plataformas y acción donde controlas a alex, un fantasma que recolecta que antes era un joven fanatico alas hamburguesas, en mundos llenos de plataformas, monedas, enemigos y power-ups. El objetivo es superar niveles, evitar fantasmas enemigos y lograr la máxima puntuación.
+Fantasma Come Hamburguesas es un juego de plataformas y acción donde controlas a alex, un fantasma que recolecta puntos y  que antes era un joven fanatico alas hamburguesas, en mundos llenos de plataformas, monedas, enemigos y power-ups. El objetivo es superar niveles, evitar que alex el fantasma muera aplastando a los enemigos y lograr la máxima puntuación.
 
 ---
 
