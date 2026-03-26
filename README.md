@@ -76,7 +76,7 @@ Fantasma Come Hamburguesas es un juego de plataformas y acción donde controlas 
 
 **PC:**  
 
-- [Descargar ZIP](#)  
+- [Descargar ZIP](https://gofile.io/d/iAuo7P)  
     Contiene: `FCH.exe`, `assets/`  
     1. Descarga y descomprime  
     2. Abre `FCH.exe`  
